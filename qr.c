@@ -33,11 +33,24 @@ int main()
 
 void encode_char(const char character, bool bits[8])
 {
+	char mask = 0;
+	for(int bit = 0; bit < 8; ++bit)
+	{
+		mask = 1 << bit;
+		bits[bit] = character & mask;
+	}
 
 	return;
 }
 
 char decode_byte(const bool bits[8])
 {
-	return 'A';
+	char character = '\0';
+
+	for(int bit = 0; bit < 8; ++bit)
+	{
+		character |= (bits[bit] << (7 - bit));
+	}
+
+	return character;
 }
