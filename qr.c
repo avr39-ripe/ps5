@@ -31,12 +31,12 @@ int main()
 
 	char* text = "Hello, how are you?";
 	const int len = strlen(text);
-	bool bytes1[len+1][8];
-	encode_string(text, bytes1);
+	bool bytes21[len+1][8];
+	encode_string(text, bytes21);
 	for(int j = 0; j <= len; j++){
 	    printf("%c: ", text[j]);
 	    for(int i = 0; i < 8; i++){
-	        printf("%d", bytes1[j][i]);
+	        printf("%d", bytes21[j][i]);
 	    }
 	    printf("\n");
 	}
@@ -62,7 +62,7 @@ int main()
 	// ?: 00111111
 	// : 00000000
 
-	bool bytes2[7][8] = {
+	bool bytes22[7][8] = {
 	    {0,1,0,0,1,0,0,0},
 	    {0,1,1,0,0,1,0,1},
 	    {0,1,1,0,1,1,0,0},
@@ -72,9 +72,82 @@ int main()
 	    {0,0,0,0,0,0,0,0}
 	};
 	char string[7];
-	decode_bytes(7, bytes2, string);
+	decode_bytes(7, bytes22, string);
 	printf("%s\n", string);
 	// prints: Hello!
+
+	// 3
+
+	int length = 4+1, cols = 3, offset = 2;
+	bool bytes31[4+1][8] = {
+	    {0,1,0,0,0,0,0,1},
+	    {0,1,1,0,1,0,0,0},
+	    {0,1,1,0,1,1,1,1},
+	    {0,1,1,0,1,0,1,0},
+	    {0,0,0,0,0,0,0,0}
+	};
+	bool blocks1[offset*8][cols];
+	bytes_to_blocks(cols, offset, blocks1, length, bytes31);
+	for(int j = 0; j < offset*8; j++){
+	    for(int i = 0; i < cols; i++){
+	        printf("%d ", (blocks1[j][i] == true) ? 1 : 0);
+	    }
+	    printf("\n");
+	    if(j % 8 == 7){
+	        printf("\n");
+	    }
+	}
+	// prints:
+	// 0 0 0
+	// 1 1 1
+	// 0 1 1
+	// 0 0 0
+	// 0 1 1
+	// 0 0 1
+	// 0 0 1
+	// 1 0 1
+	//
+	// 0 0 0
+	// 1 0 0
+	// 1 0 0
+	// 0 0 0
+	// 1 0 0
+	// 0 0 0
+	// 1 0 0
+	// 0 0 0
+
+	bool blocks2[2*8][3] = {
+	    {0,0,0},
+	    {1,1,1},
+	    {0,1,1},
+	    {0,0,0},
+	    {0,1,1},
+	    {0,0,1},
+	    {0,0,1},
+	    {1,0,1},
+	    {0,0,0},
+	    {1,0,0},
+	    {1,0,0},
+	    {0,0,0},
+	    {1,0,0},
+	    {0,0,0},
+	    {1,0,0},
+	    {0,0,0}
+	};
+	bool bytes32[length][8];
+	blocks_to_bytes(3, 2, blocks2, length, bytes32);
+	for(int j = 0; j < length; j++){
+	    for(int i = 0; i < 8; i++){
+	        printf("%d", bytes32[j][i]);
+	    }
+	    printf("\n");
+	}
+	// prints:
+	// 01000001
+	// 01101000
+	// 01101111
+	// 01101010
+	// 00000000
 
 	return 0;
 }
@@ -125,3 +198,49 @@ void decode_bytes(const int rows, bool bytes[rows][8], char string[rows])
 
 	return;
 }
+
+void bytes_to_blocks(const int cols, const int offset, bool blocks[offset*8][cols], const int rows, bool bytes[rows][8])
+{
+	int row_pos = 0;
+
+	for (int offset_pos = 0; offset_pos < offset; ++offset_pos)
+	{
+		for(int col_pos = 0; col_pos < cols; ++col_pos)
+		{
+			for (int bit_pos = 0; bit_pos < 8; ++bit_pos)
+			{
+				blocks[(offset_pos * 8) + bit_pos][col_pos] = ((row_pos < rows) ? bytes[row_pos][bit_pos] : 0);
+			}
+			++row_pos;
+		}
+	}
+
+	return;
+}
+
+void blocks_to_bytes(const int cols, const int offset, bool blocks[offset*8][cols], const int rows, bool bytes[rows][8])
+{
+	int row_pos = 0;
+
+	for (int offset_pos = 0; offset_pos < offset; ++offset_pos)
+	{
+		for(int col_pos = 0; col_pos < cols; ++col_pos)
+		{
+			for (int bit_pos = 0; bit_pos < 8; ++bit_pos)
+			{
+				if (row_pos < rows)
+				{
+					bytes[row_pos][bit_pos] = blocks[(offset_pos * 8) + bit_pos][col_pos];
+				}
+				else
+				{
+					return;
+				}
+			}
+			++row_pos;
+		}
+	}
+
+	return;
+}
+
